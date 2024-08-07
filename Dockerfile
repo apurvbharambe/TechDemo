@@ -1,0 +1,5 @@
+FROM mysql:8.0
+
+ENV MYSQL_DATABASE=techdemo
+ENV MYSQL_ROOT_PASSWORD=apurva@1234
+

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django  #label assigned to pods
+    spec:
+      containers:
+      - name: django   # name of container
+        image: apurvabharambe/backend:latest3 
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: mysql://root:apurva@1234@mysql-service:3306/techdemo
+        # Add any other environment variables here
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+spec:
+  type: NodePort
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30001
+  selector:
+    app: django

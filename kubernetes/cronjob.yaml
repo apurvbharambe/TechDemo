@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: django-cronjob
+spec:
+  schedule: "*/30 * * * *"  # This runs the job daily at 7 AM
+
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: django
+            image: apurvabharambe/backend:latest3  # Replace with your Django image
+            command: ["python", "manage.py", "fetchdata"]  # management command
+            env:
+            - name: DJANGO_SETTINGS_MODULE
+              value: stocks_monitoring.settings
+            - name: DATABASE_URL
+              value: mysql://root:apurva@1234@mysql-service:3306/techdemo
+          restartPolicy: OnFailure
+
+---
