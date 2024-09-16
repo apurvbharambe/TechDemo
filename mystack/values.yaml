@@ -1,0 +1,120 @@
+# values.yaml
+
+# Django settings
+django:
+  replicaCount: 1
+  image:
+    repository: apurvabharambe/backend
+    tag: alpine
+  service:
+    port: 8000
+    type: NodePort
+    nodePort: 30001
+  env:
+    DATABASE_URL: "mysql://root:apurva@1234@mysql-service:3306/techdemo"
+
+# MySQL settings
+mysql:
+  replicaCount: 1
+  image:
+    repository: apurvabharambe/database
+    tag: latest
+  service:
+    port: 3306
+    type: ClusterIP
+  env:
+    MYSQL_DATABASE: "techdemo"
+    MYSQL_ROOT_PASSWORD: "apurva@1234"
+  persistence:
+    enabled: true
+    storageClass: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+
+# Node.js settings
+nodejs:
+  replicaCount: 1
+  image:
+    repository: apurvabharambe/frontend
+    tag: alpine1
+  service:
+    port: 3000
+    type: NodePort
+    nodePort: 30002
+
+
+
+# Prometheus settings
+prometheus:
+  replicaCount: 1
+  image:
+    repository: prom/prometheus
+    tag: latest
+  service:
+    port: 9090
+    type: NodePort
+    nodePort: 31000
+  config:
+    scrape_interval: 15s
+    metrics_path: '/metrics/'
+    static_configs:
+      - targets: ['django-service2:8000']
+    rule_files:
+      - '/etc/prometheus/alerts.yml'
+
+
+
+# Alertmanager settings
+alertmanager:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'apurvabharambe1@gmail.com'
+  smtp_auth_username: 'apurvabharambe1@gmail.com'
+  smtp_auth_password: ''
+  smtp_require_tls: true
+  receivers:
+    - name: 'email_notifications'
+      email_configs:
+        - to: 'apurvabharambe1@gmail.com'
+          send_resolved: true
+  route:
+    receiver: 'email_notifications'
+    group_by: ['alertname']
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 24h
+
+# Grafana settings
+grafana:
+  replicaCount: 1
+  image:
+    repository: grafana/grafana
+    tag: latest
+  service:
+    port: 3000
+    type: NodePort
+    nodePort: 30005
+  admin:
+    user: "admin"
+    password: "admin"
+  persistence:
+    enabled: true
+    storageClass: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+# CronJob settings
+cronjob:
+  schedule: "*/30 * * * *"
+  image:
+    repository: apurvabharambe/backend
+    tag: latest3
+  command:
+    - "python"
+    - "manage.py"
+    - "fetchdata"
+  env:
+    DJANGO_SETTINGS_MODULE: "stocks_monitoring.settings"
+    DATABASE_URL: "mysql://root:apurva@1234@mysql-service:3306/techdemo"
+

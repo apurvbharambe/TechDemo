@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc2
+spec:
+  accessModes:
+    - {{ .Values.mysql.persistence.accessModes | first }}
+  resources:
+    requests:
+      storage: {{ .Values.mysql.persistence.size }}
+  storageClassName: {{ .Values.mysql.persistence.storageClass }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: {{ .Values.mysql.replicaCount }}
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          env:
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.env.MYSQL_DATABASE }}
+            - name: MYSQL_ROOT_PASSWORD
+              value: {{ .Values.mysql.env.MYSQL_ROOT_PASSWORD }}
+          ports:
+            - containerPort: {{ .Values.mysql.service.port }}
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  type: {{ .Values.mysql.service.type }}
+  ports:
+    - port: {{ .Values.mysql.service.port }}
+      targetPort: {{ .Values.mysql.service.port }}
+  selector:
+    app: mysql
